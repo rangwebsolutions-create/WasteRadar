@@ -1,0 +1,374 @@
+/* =========================================================
+   WasteRadar — design tokens
+   ========================================================= */
+:root {
+  --bg-deep: #0B1210;
+  --surface: #121C1A;
+  --surface-elevated: #17251F;
+  --accent: #2EFFB2;
+  --accent-dim: #1FAE7C;
+  --danger: #FF5C4D;
+  --text-primary: #EAF5F1;
+  --text-muted: #8FA39D;
+  --border: rgba(46, 255, 178, 0.18);
+  --font-display: 'Chakra Petch', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --radius-lg: 22px;
+  --radius-md: 14px;
+  --radius-sm: 8px;
+  --shadow-glow: 0 0 28px rgba(46, 255, 178, 0.28);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: var(--font-body);
+  background: var(--bg-deep);
+  color: var(--text-primary);
+}
+
+/* =========================================================
+   Map
+   ========================================================= */
+#map {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  background: var(--bg-deep);
+}
+#map.crosshair { cursor: crosshair; }
+
+/* Leaflet dark theme overrides */
+.leaflet-control-zoom a {
+  background: var(--surface-elevated) !important;
+  color: var(--accent) !important;
+  border: 1px solid var(--border) !important;
+}
+.leaflet-control-zoom a:hover {
+  background: var(--accent-dim) !important;
+  color: var(--bg-deep) !important;
+}
+.leaflet-control-attribution {
+  background: rgba(11, 18, 16, 0.75) !important;
+  color: var(--text-muted) !important;
+  font-family: var(--font-body);
+  font-size: 10px;
+}
+.leaflet-control-attribution a { color: var(--accent); }
+.leaflet-popup-content-wrapper {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.leaflet-popup-tip { background: var(--surface-elevated); }
+.hotspot-popup { font-family: var(--font-body); font-size: 13px; line-height: 1.5; }
+.hotspot-popup strong { font-family: var(--font-display); color: var(--accent); }
+.hotspot-popup__coords { color: var(--text-muted); font-size: 11px; }
+
+/* =========================================================
+   Radar logo — signature motif, reused (subtly) on the report CTA
+   ========================================================= */
+.radar-logo {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: radial-gradient(circle, rgba(46,255,178,0.15) 0%, transparent 70%);
+  overflow: hidden;
+}
+.radar-logo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(46,255,178,0.9), transparent 35%);
+  animation: radar-sweep 3s linear infinite;
+}
+.radar-logo::after {
+  content: '';
+  position: absolute;
+  inset: 38%;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+}
+@keyframes radar-sweep { to { transform: rotate(360deg); } }
+
+/* =========================================================
+   Mock auth overlay
+   ========================================================= */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 10, 9, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.auth-card {
+  width: min(360px, 88vw);
+  padding: 32px 28px 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-glow), 0 20px 60px rgba(0,0,0,0.45);
+  text-align: center;
+  animation: card-rise 0.4s ease;
+}
+@keyframes card-rise {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.auth-card__title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin: 0 0 6px;
+}
+.auth-card__tagline {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 0 24px;
+}
+.auth-card__label {
+  display: block;
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.auth-card__select {
+  width: 100%;
+  padding: 13px 40px 13px 14px;
+  margin-bottom: 20px;
+  background-color: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--accent) 50%),
+    linear-gradient(135deg, var(--accent) 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) calc(50% - 3px),
+    calc(100% - 15px) calc(50% - 3px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.auth-card__select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.deploy-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #04140F;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.deploy-btn:hover { box-shadow: 0 0 20px rgba(46,255,178,0.5); transform: translateY(-1px); }
+.deploy-btn:active { transform: translateY(0); }
+.deploy-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* =========================================================
+   Crew badge
+   ========================================================= */
+.crew-badge {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(18, 28, 26, 0.85);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.crew-badge.hidden { opacity: 0; transform: translateY(-8px); pointer-events: none; }
+.crew-badge__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  flex-shrink: 0;
+}
+.crew-badge__info { display: flex; flex-direction: column; line-height: 1.25; }
+.crew-badge__name { font-family: var(--font-display); font-size: 13px; font-weight: 600; }
+.crew-badge__meta { font-size: 10px; color: var(--text-muted); }
+.crew-badge__switch {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 4px;
+}
+.crew-badge__switch:hover { color: var(--accent); }
+
+@supports (top: env(safe-area-inset-top)) {
+  .crew-badge { top: calc(16px + env(safe-area-inset-top)); }
+}
+
+/* =========================================================
+   Report Hotspot — floating CTA
+   ========================================================= */
+.report-btn {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 26px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #04140F;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(46,255,178,0.3);
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+.report-btn:active { transform: translateX(-50%) scale(0.97); }
+.report-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+.report-btn__ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  opacity: 0;
+  animation: ping 2.6s ease-out infinite;
+}
+.report-btn__ring--delay { animation-delay: 1.3s; }
+@keyframes ping {
+  0%   { transform: scale(0.9);  opacity: 0.55; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+.report-btn__icon { font-size: 16px; }
+
+.report-btn--armed {
+  background: var(--danger);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,92,77,0.4);
+}
+.report-btn--armed .report-btn__ring { border-color: var(--danger); animation-duration: 1.4s; }
+
+@supports (bottom: env(safe-area-inset-bottom)) {
+  .report-btn { bottom: calc(28px + env(safe-area-inset-bottom)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radar-logo::before,
+  .report-btn__ring,
+  .hotspot-marker__ring,
+  .auth-card {
+    animation: none !important;
+  }
+}
+
+/* =========================================================
+   Toast
+   ========================================================= */
+.toast {
+  position: fixed;
+  bottom: 96px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  z-index: 1100;
+  padding: 10px 18px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  white-space: nowrap;
+  max-width: 90vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* =========================================================
+   Hotspot marker (on map)
+   ========================================================= */
+.hotspot-marker__dot {
+  position: absolute;
+  top: 8px; left: 8px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--danger);
+  box-shadow: 0 0 10px var(--danger);
+}
+.hotspot-marker__ring {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--danger);
+  opacity: 0.6;
+  animation: ping 1.8s ease-out infinite;
+}
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+@media (max-width: 420px) {
+  .auth-card { padding: 26px 20px 22px; }
+  .auth-card__title { font-size: 22px; }
+  .report-btn { padding: 13px 20px; font-size: 13px; }
+  .crew-badge { padding: 8px 12px; }
+}
