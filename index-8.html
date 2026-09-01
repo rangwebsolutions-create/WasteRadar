@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WasteRadar — Agadir</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="map"></div>
+
+<!-- Mock Auth Overlay -->
+<div id="auth-overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+  <div class="modal-card auth-card">
+    <div class="radar-logo" aria-hidden="true"></div>
+    <h1 id="auth-title" class="auth-card__title">WasteRadar</h1>
+    <p class="auth-card__tagline">Scan the coast. Flag the mess. Earn the cleanup.</p>
+
+    <label class="auth-card__label" for="crew-select">Select Your Crew</label>
+    <select id="crew-select" class="auth-card__select">
+      <option value="Team Atlas">Team Atlas</option>
+      <option value="Beach Guardians">Beach Guardians</option>
+      <option value="Desert Rovers">Desert Rovers</option>
+    </select>
+
+    <button id="deploy-btn" class="deploy-btn">Deploy</button>
+  </div>
+</div>
+
+<!-- Report Hotspot Modal -->
+<div id="report-modal" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="report-title">
+  <div class="modal-card report-card">
+    <div class="report-card__header">
+      <h2 id="report-title" class="report-card__title">Report Hotspot</h2>
+      <button id="close-report-modal" class="report-card__close" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="upload-wrapper">
+      <input type="file" id="photo-input" accept="image/*" capture="environment" hidden />
+      <div class="upload-zone" id="upload-zone">
+        <div class="upload-zone__content" id="upload-zone-content">
+          <span class="upload-zone__icon">📷</span>
+          <span class="upload-zone__title">Snap a photo of the waste</span>
+          <span class="upload-zone__hint">Tap to open camera or gallery</span>
+        </div>
+      </div>
+      <p class="upload-wrapper__caption">Your GPS location is attached automatically.</p>
+    </div>
+
+    <button id="submit-report-btn" class="deploy-btn submit-btn">
+      <span class="submit-btn__spinner" aria-hidden="true"></span>
+      <span class="submit-btn__label">Submit Report</span>
+    </button>
+  </div>
+</div>
+
+<!-- Crew Badge (shown once deployed) -->
+<div id="crew-badge" class="crew-badge hidden">
+  <span class="crew-badge__dot"></span>
+  <div class="crew-badge__info">
+    <span class="crew-badge__name" id="crew-badge-name">Team Atlas</span>
+    <span class="crew-badge__meta"><span id="badge-count">0</span> hotspots flagged</span>
+  </div>
+  <button id="switch-crew-btn" class="crew-badge__switch" title="Switch crew">Switch</button>
+</div>
+
+<!-- Floating Report Hotspot CTA -->
+<button id="report-btn" class="report-btn">
+  <span class="report-btn__ring"></span>
+  <span class="report-btn__ring report-btn__ring--delay"></span>
+  <span class="report-btn__icon">📍</span>
+  <span class="report-btn__label">Report Hotspot</span>
+</button>
+
+<!-- Toast feedback -->
+<div id="toast" class="toast" aria-live="polite"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="script.js"></script>
+</body>
+</html>
