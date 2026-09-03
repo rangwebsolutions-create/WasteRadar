@@ -45,14 +45,12 @@
     </div>
 
     <div class="upload-wrapper">
-      <input type="file" id="photo-input" accept="image/*" capture="environment" hidden />
-      <div class="upload-zone" id="upload-zone">
-        <div class="upload-zone__content" id="upload-zone-content">
-          <span class="upload-zone__icon">📷</span>
-          <span class="upload-zone__title">Snap a photo of the waste</span>
-          <span class="upload-zone__hint">Tap to open camera or gallery</span>
-        </div>
-      </div>
+      <label class="upload-zone" id="upload-zone" for="photo-input">
+        <input type="file" id="photo-input" accept="image/*" capture="environment" hidden />
+        <span class="upload-zone__icon" id="upload-zone-icon">📷</span>
+        <span class="upload-zone__title" id="upload-zone-title">Snap a photo of the waste</span>
+        <span class="upload-zone__hint" id="upload-zone-hint">Tap to open camera or gallery</span>
+      </label>
       <p class="upload-wrapper__caption">Your GPS location is attached automatically.</p>
     </div>
 
@@ -63,15 +61,81 @@
   </div>
 </div>
 
-<!-- Crew Badge (shown once deployed) -->
-<div id="crew-badge" class="crew-badge hidden">
-  <span class="crew-badge__dot"></span>
-  <div class="crew-badge__info">
-    <span class="crew-badge__name" id="crew-badge-name">Team Atlas</span>
-    <span class="crew-badge__meta"><span id="badge-count">0</span> hotspots flagged</span>
+<!-- Claim Cleanup Modal — AI verification core loop -->
+<div id="claim-modal" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="claim-title">
+  <div class="modal-card report-card">
+    <div class="report-card__header">
+      <h2 id="claim-title" class="report-card__title">Claim Cleanup</h2>
+      <button id="close-claim-modal" class="report-card__close" aria-label="Close">&times;</button>
+    </div>
+
+    <!-- State 1: upload form -->
+    <div id="claim-state-form" class="claim-state">
+      <div class="claim-severity-row">
+        <span class="hotspot-popup__severity" id="claim-severity-badge">Severity score: —</span>
+      </div>
+
+      <div class="upload-wrapper">
+        <label class="upload-zone" id="claim-upload-zone" for="claim-photo-input">
+          <input type="file" id="claim-photo-input" accept="image/*" capture="environment" hidden />
+          <span class="upload-zone__icon" id="claim-upload-icon">📷</span>
+          <span class="upload-zone__title" id="claim-upload-title">Upload "After" Photo to Verify Cleanup</span>
+          <span class="upload-zone__hint" id="claim-upload-hint">Tap to open camera or gallery</span>
+        </label>
+      </div>
+
+      <button id="run-scanner-btn" class="deploy-btn" disabled>Run AI Scanner</button>
+    </div>
+
+    <!-- State 2: scanning -->
+    <div id="claim-state-scanning" class="claim-state hidden">
+      <div class="scanner-radar" aria-hidden="true">
+        <span class="scanner-radar__ring"></span>
+        <span class="scanner-radar__ring scanner-radar__ring--delay"></span>
+        <span class="scanner-radar__sweep"></span>
+        <span class="scanner-radar__core"></span>
+      </div>
+      <p class="claim-status-text">AI Analyzing visual waste reduction...</p>
+    </div>
+
+    <!-- State 3: success -->
+    <div id="claim-state-success" class="claim-state hidden">
+      <div class="claim-success-icon" aria-hidden="true">✅</div>
+      <p class="claim-success-text" id="claim-success-text">Cleanup Verified!</p>
+      <button id="claim-done-btn" class="deploy-btn">Nice!</button>
+    </div>
   </div>
-  <button id="switch-crew-btn" class="crew-badge__switch" title="Switch crew">Switch</button>
 </div>
+
+<!-- Leaderboard slide-out panel -->
+<div id="leaderboard-backdrop" class="overlay hidden"></div>
+<aside id="leaderboard-panel" class="leaderboard-panel hidden" role="dialog" aria-modal="true" aria-labelledby="leaderboard-title">
+  <div class="report-card__header">
+    <h2 id="leaderboard-title" class="report-card__title">🏆 Leaderboard</h2>
+    <button id="close-leaderboard" class="report-card__close" aria-label="Close">&times;</button>
+  </div>
+  <div id="leaderboard-list" class="leaderboard-list"></div>
+  <p class="leaderboard-caption">
+    Estimated split of <strong id="leaderboard-total">0</strong> verified cleanups — WasteRadar doesn't yet
+    track which crew resolves each pin, so team totals here are illustrative, not exact.
+  </p>
+</aside>
+
+<!-- Gamified HUD (shown once deployed) -->
+<header id="hud" class="hud hidden">
+  <button id="hud-team-btn" class="hud__team-btn" type="button" aria-label="Switch crew">
+    <span class="hud__avatar" id="hud-avatar" aria-hidden="true">🧭</span>
+    <span class="hud__team-name" id="hud-team-name">Team Atlas</span>
+    <span class="hud__switch-icon" aria-hidden="true">⇄</span>
+  </button>
+  <div class="hud__right">
+    <button id="leaderboard-btn" class="hud__icon-btn" type="button" aria-label="Open leaderboard">🏆</button>
+    <div class="hud__xp">
+      <span aria-hidden="true">⭐</span>
+      <span id="hud-xp-count">0</span> XP
+    </div>
+  </div>
+</header>
 
 <!-- Floating Report Hotspot CTA -->
 <button id="report-btn" class="report-btn">
@@ -83,6 +147,10 @@
 
 <!-- Toast feedback -->
 <div id="toast" class="toast" aria-live="polite"></div>
+
+<!-- Hidden dev-mode reset trigger — double-tap/double-click to reset demo data.
+     Intentionally invisible; see script.js for the gesture handling. -->
+<div id="dev-mode-trigger" class="dev-mode-trigger" aria-hidden="true"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>

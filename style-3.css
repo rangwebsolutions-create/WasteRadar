@@ -7,7 +7,7 @@
   --surface-elevated: #17251F;
   --accent: #2EFFB2;
   --accent-dim: #1FAE7C;
-  --danger: #FF5C4D;   /* hotspot marker red */
+  --danger: #FF5C4D;   /* hotspot marker red (open/unresolved) */
   --text-primary: #EAF5F1;
   --text-muted: #8FA39D;
   --border: rgba(46, 255, 178, 0.18);
@@ -17,6 +17,7 @@
   --radius-md: 14px;
   --radius-sm: 8px;
   --shadow-glow: 0 0 28px rgba(46, 255, 178, 0.28);
+  --transition-standard: 0.3s ease-in-out; /* modals, slide-outs, state changes (Task 3) */
 }
 
 * { box-sizing: border-box; }
@@ -60,20 +61,10 @@ html, body {
   font-size: 10px;
 }
 .leaflet-control-attribution a { color: var(--accent); }
-.leaflet-popup-content-wrapper {
-  background: var(--surface-elevated);
-  color: var(--text-primary);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-}
-.leaflet-popup-tip { background: var(--surface-elevated); }
-.leaflet-popup-close-button { color: var(--text-muted) !important; }
-.leaflet-popup-close-button:hover { color: var(--accent) !important; }
 
 /* =========================================================
-   Hotspot popup content
+   Severity badge — used inside the Claim Cleanup modal
    ========================================================= */
-.hotspot-popup { font-family: var(--font-body); font-size: 13px; line-height: 1.5; min-width: 160px; }
 .hotspot-popup__severity {
   display: inline-block;
   padding: 2px 8px;
@@ -87,11 +78,12 @@ html, body {
   letter-spacing: 0.04em;
   margin-bottom: 6px;
 }
-.hotspot-popup__coords { display: block; color: var(--text-muted); font-size: 11px; margin-bottom: 2px; }
-.hotspot-popup__status { font-size: 11px; color: var(--text-muted); text-transform: capitalize; }
 
 /* =========================================================
-   Hotspot markers on the map (live data, from Supabase)
+   Hotspot markers on the map (live data, from Supabase).
+   Red = open, needs cleanup. Green = resolved/captured — see
+   hotspotIcon(resolved) in script.js and the Claim Cleanup flow.
+   High-contrast against the CartoDB Dark Matter basemap (Task 3).
    ========================================================= */
 .hotspot-marker__dot {
   position: absolute;
@@ -110,9 +102,18 @@ html, body {
   opacity: 0.6;
   animation: ping 1.8s ease-out infinite;
 }
+.hotspot-marker--resolved .hotspot-marker__dot {
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+}
+.hotspot-marker--resolved .hotspot-marker__ring {
+  border-color: var(--accent);
+  opacity: 0.35;
+  animation: none; /* settled/captured — no urgent pulsing needed anymore */
+}
 
 /* =========================================================
-   Radar logo — signature motif (auth screen only)
+   Radar logo — signature motif (auth screen + AI scanner)
    ========================================================= */
 .radar-logo {
   position: relative;
@@ -143,7 +144,7 @@ html, body {
 @keyframes radar-sweep { to { transform: rotate(360deg); } }
 
 /* =========================================================
-   Shared modal shell
+   Shared modal shell — 0.3s ease-in-out per Task 3
    ========================================================= */
 .overlay {
   position: fixed;
@@ -155,7 +156,7 @@ html, body {
   background: rgba(6, 10, 9, 0.72);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition: opacity var(--transition-standard), visibility var(--transition-standard);
 }
 .overlay.hidden {
   opacity: 0;
@@ -170,7 +171,7 @@ html, body {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-glow), 0 20px 60px rgba(0,0,0,0.45);
-  animation: card-rise 0.4s ease;
+  animation: card-rise var(--transition-standard);
 }
 @keyframes card-rise {
   from { transform: translateY(16px); opacity: 0; }
@@ -220,7 +221,7 @@ html, body {
 }
 .auth-card__select:focus { outline: none; border-color: var(--accent); }
 
-/* ----- Report card specifics ----- */
+/* ----- Report / Claim card header (shared) ----- */
 .report-card__header {
   display: flex;
   align-items: center;
@@ -239,6 +240,8 @@ html, body {
 }
 .report-card__close:hover { color: var(--accent); }
 
+/* ----- Upload zone (native <label> + hidden <input type=file>) -----
+   Shared, byte-for-byte, between the Report Hotspot and Claim Cleanup modals. */
 .upload-wrapper { margin-bottom: 20px; }
 .upload-zone {
   border: 1.5px dashed var(--border);
@@ -254,25 +257,11 @@ html, body {
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 .upload-zone:hover { border-color: var(--accent-dim); }
-.upload-zone.has-photo { border-style: solid; border-color: var(--accent); }
-.upload-zone__icon { font-size: 26px; }
+.upload-zone.has-photo { border-style: solid; border-color: var(--accent); background: rgba(46, 255, 178, 0.06); }
+.upload-zone__icon { font-size: 26px; color: var(--text-primary); transition: color 0.2s ease; }
+.upload-zone__icon--success { color: var(--accent); }
 .upload-zone__title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
 .upload-zone__hint { font-size: 11px; color: var(--text-muted); }
-.upload-zone__filename {
-  font-size: 12px;
-  color: var(--text-primary);
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.upload-zone__preview {
-  max-height: 110px;
-  width: auto;
-  border-radius: var(--radius-sm);
-  object-fit: cover;
-  margin-bottom: 4px;
-}
 .upload-wrapper__caption {
   font-size: 11px;
   color: var(--text-muted);
@@ -280,7 +269,7 @@ html, body {
   margin: 8px 0 0;
 }
 
-/* ----- Buttons shared by both modals ----- */
+/* ----- Buttons shared across modals ----- */
 .deploy-btn {
   width: 100%;
   padding: 14px;
@@ -299,7 +288,7 @@ html, body {
 .deploy-btn:hover { box-shadow: 0 0 20px rgba(46,255,178,0.5); transform: translateY(-1px); }
 .deploy-btn:active { transform: translateY(0); }
 .deploy-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.deploy-btn:disabled { opacity: 0.85; cursor: not-allowed; transform: none; }
+.deploy-btn:disabled { opacity: 0.85; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .submit-btn { display: flex; align-items: center; justify-content: center; gap: 8px; }
 .submit-btn__spinner {
@@ -314,52 +303,254 @@ html, body {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* =========================================================
-   Crew badge
+   Claim Cleanup — severity badge row + AI scanner states
+   Each state fades/rises in over 0.3s ease-in-out when it becomes
+   active, so switching form -> scanning -> success feels smooth.
    ========================================================= */
-.crew-badge {
-  position: fixed;
-  top: 16px;
-  left: 16px;
-  z-index: 900;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: rgba(18, 28, 26, 0.85);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+.claim-state.hidden { display: none; }
+.claim-state:not(.hidden) { animation: state-fade-in var(--transition-standard); }
+@keyframes state-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-.crew-badge.hidden { opacity: 0; transform: translateY(-8px); pointer-events: none; }
-.crew-badge__dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
-  flex-shrink: 0;
-}
-.crew-badge__info { display: flex; flex-direction: column; line-height: 1.25; }
-.crew-badge__name { font-family: var(--font-display); font-size: 13px; font-weight: 600; }
-.crew-badge__meta { font-size: 10px; color: var(--text-muted); }
-.crew-badge__switch {
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 11px;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 0;
-  margin-left: 4px;
-}
-.crew-badge__switch:hover { color: var(--accent); }
 
-@supports (top: env(safe-area-inset-top)) {
-  .crew-badge { top: calc(16px + env(safe-area-inset-top)); }
+.claim-severity-row { text-align: center; margin-bottom: 16px; }
+
+/* State 2: scanning — a bigger reprise of the radar-logo motif so the
+   "AI Scanner" moment reads as a highly visual, on-brand event. */
+.scanner-radar {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 4px auto 22px;
+}
+.scanner-radar__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  opacity: 0;
+  animation: ping 2.2s ease-out infinite;
+}
+.scanner-radar__ring--delay { animation-delay: 1.1s; }
+.scanner-radar__sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(46,255,178,0.9), transparent 40%);
+  animation: radar-sweep 1.4s linear infinite;
+}
+.scanner-radar__core {
+  position: absolute;
+  inset: 42%;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 20px var(--accent), 0 0 40px rgba(46, 255, 178, 0.4);
+}
+.claim-status-text {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+  margin: 0;
+  animation: text-pulse 1.6s ease-in-out infinite;
+}
+@keyframes text-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+/* State 3: success */
+.claim-success-icon { font-size: 48px; text-align: center; margin-bottom: 10px; }
+.claim-success-text {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: 0 0 16px rgba(46, 255, 178, 0.5);
+  margin: 0 0 20px;
+  line-height: 1.4;
 }
 
 /* =========================================================
-   Report Hotspot — floating CTA
+   Leaderboard — slide-out panel (Task 1)
+   ========================================================= */
+.leaderboard-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(320px, 85vw);
+  z-index: 1001; /* above the .overlay backdrop (1000) */
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.45);
+  padding: 24px 20px;
+  padding-top: calc(24px + env(safe-area-inset-top, 0px));
+  display: flex;
+  flex-direction: column;
+  transform: translateX(0);
+  transition: transform var(--transition-standard), visibility var(--transition-standard);
+}
+.leaderboard-panel.hidden {
+  transform: translateX(100%);
+  visibility: hidden;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+}
+.leaderboard-row--you {
+  border-color: var(--accent);
+  background: rgba(46, 255, 178, 0.08);
+  box-shadow: 0 0 16px rgba(46, 255, 178, 0.15);
+}
+.leaderboard-row__rank {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-muted);
+  width: 22px;
+  flex-shrink: 0;
+}
+.leaderboard-row--you .leaderboard-row__rank { color: var(--accent); }
+.leaderboard-row__avatar { font-size: 16px; flex-shrink: 0; }
+.leaderboard-row__name {
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.leaderboard-row__score { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+.leaderboard-caption { font-size: 11px; color: var(--text-muted); line-height: 1.5; margin: 0; }
+
+/* =========================================================
+   Gamified HUD — glassmorphism top bar
+   (avatar/team left, leaderboard + XP right)
+   ========================================================= */
+.hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(18, 28, 26, 0.55);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  transition: opacity var(--transition-standard), transform var(--transition-standard);
+}
+.hud.hidden {
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+
+.hud__team-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 5px 12px 5px 5px;
+  cursor: pointer;
+  min-width: 0; /* allow the name to actually shrink/ellipsis inside the flex row */
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.hud__team-btn:hover,
+.hud__team-btn:active { background: rgba(46, 255, 178, 0.12); border-color: var(--accent-dim); }
+.hud__team-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.hud__avatar {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(46, 255, 178, 0.15);
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.hud__team-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  max-width: 34vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hud__switch-icon { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+
+.hud__right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+.hud__icon-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.hud__icon-btn:hover,
+.hud__icon-btn:active { background: rgba(46, 255, 178, 0.12); border-color: var(--accent-dim); }
+.hud__icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.hud__xp {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: 0 0 12px rgba(46, 255, 178, 0.5);
+  white-space: nowrap;
+}
+.hud__xp.bump { animation: xp-bump 0.4s ease; }
+@keyframes xp-bump {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+@supports (top: env(safe-area-inset-top)) {
+  .hud { padding-top: calc(14px + env(safe-area-inset-top)); }
+}
+
+/* =========================================================
+   Report Hotspot — floating CTA (with attention-pulling pulse)
    ========================================================= */
 .report-btn {
   position: fixed;
@@ -383,9 +574,17 @@ html, body {
   cursor: pointer;
   box-shadow: 0 8px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(46,255,178,0.3);
   transition: background 0.2s ease, transform 0.15s ease;
+  animation: button-pulse-glow 2.4s ease-in-out infinite;
 }
 .report-btn:active { transform: translateX(-50%) scale(0.97); }
 .report-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+/* Pulse lives on box-shadow only, never transform — so it never fights
+   the :active press-feedback transform above. */
+@keyframes button-pulse-glow {
+  0%, 100% { box-shadow: 0 8px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(46,255,178,0.3), 0 0 0 rgba(46,255,178,0); }
+  50%      { box-shadow: 0 8px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(46,255,178,0.3), 0 0 22px rgba(46,255,178,0.65); }
+}
 
 .report-btn__ring {
   position: absolute;
@@ -408,11 +607,31 @@ html, body {
 
 @media (prefers-reduced-motion: reduce) {
   .radar-logo::before,
+  .report-btn,
   .report-btn__ring,
   .hotspot-marker__ring,
-  .modal-card {
+  .modal-card,
+  .claim-state:not(.hidden),
+  .scanner-radar__ring,
+  .scanner-radar__sweep,
+  .claim-status-text,
+  .hud__xp.bump {
     animation: none !important;
   }
+}
+
+/* =========================================================
+   Dev-mode reset trigger (Task 2) — intentionally invisible.
+   Double-tap/double-click handled in script.js.
+   ========================================================= */
+.dev-mode-trigger {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 50px;
+  height: 50px;
+  background: transparent;
+  z-index: 850;
 }
 
 /* =========================================================
@@ -441,11 +660,22 @@ html, body {
 .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* =========================================================
-   Responsive
+   Responsive — phone-first pass (Task 3)
    ========================================================= */
 @media (max-width: 420px) {
   .auth-card, .report-card { padding: 24px 20px 22px; }
   .auth-card__title { font-size: 22px; }
   .report-btn { padding: 13px 20px; font-size: 13px; }
-  .crew-badge { padding: 8px 12px; }
+  .hud { padding: 10px 12px; gap: 6px; }
+  .hud__team-name { font-size: 12px; max-width: 30vw; }
+  .hud__team-btn { padding: 4px 10px 4px 4px; }
+  .hud__avatar, .hud__icon-btn { width: 26px; height: 26px; }
+  .hud__xp { font-size: 13px; }
+  .scanner-radar { width: 96px; height: 96px; }
+  .leaderboard-panel { padding: 20px 16px; padding-top: calc(20px + env(safe-area-inset-top, 0px)); }
+}
+
+@media (max-width: 340px) {
+  .hud__switch-icon { display: none; }
+  .hud__team-name { max-width: 24vw; }
 }
