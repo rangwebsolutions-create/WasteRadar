@@ -16,7 +16,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -27,69 +27,64 @@
 
 <div id="map"></div>
 
-<!-- Landing screen — the real "front door". Always shown on load; a saved
-     crew (returning visitor) only skips the crew-select step that follows
-     it, not this screen itself. -->
+<!-- Landing screen -->
 <div id="landing-screen" class="landing-screen hidden">
   <div class="landing-content">
     <div class="radar-logo radar-logo--hero" aria-hidden="true"></div>
     <h1 class="landing-title">WasteRadar</h1>
-    <p class="landing-tagline">Scan the coast. Flag the mess. Earn the cleanup.</p>
-    <p class="landing-location">📍 Live in Agadir, Morocco</p>
+    <p class="landing-tagline" data-i18n="tagline">Scan the coast. Flag the mess. Earn the cleanup.</p>
+    <p class="landing-location" data-i18n="liveIn">Live in Agadir, Morocco</p>
 
     <div class="landing-features">
       <div class="landing-feature">
-        <span class="landing-feature__icon">📍</span>
-        <span class="landing-feature__label">Report hotspots</span>
+        <span class="landing-feature__icon" id="landing-feature-icon-report" aria-hidden="true"></span>
+        <span class="landing-feature__label" data-i18n="featureReport">Report hotspots</span>
       </div>
       <div class="landing-feature">
-        <span class="landing-feature__icon">🤖</span>
-        <span class="landing-feature__label">AI-verify cleanups</span>
+        <span class="landing-feature__icon" id="landing-feature-icon-verify" aria-hidden="true"></span>
+        <span class="landing-feature__label" data-i18n="featureVerify">AI-verify cleanups</span>
       </div>
       <div class="landing-feature">
-        <span class="landing-feature__icon">🏆</span>
-        <span class="landing-feature__label">Compete with crews</span>
+        <span class="landing-feature__icon" id="landing-feature-icon-compete" aria-hidden="true"></span>
+        <span class="landing-feature__label" data-i18n="featureCompete">Compete with crews</span>
       </div>
     </div>
 
     <div class="landing-stats" id="landing-stats">
       <div class="landing-stat">
         <span class="landing-stat__number" id="landing-stat-reported">—</span>
-        <span class="landing-stat__label">reported</span>
+        <span class="landing-stat__label" data-i18n="statReported">reported</span>
       </div>
       <div class="landing-stat-divider" aria-hidden="true"></div>
       <div class="landing-stat">
         <span class="landing-stat__number" id="landing-stat-verified">—</span>
-        <span class="landing-stat__label">verified</span>
+        <span class="landing-stat__label" data-i18n="statVerified">verified</span>
       </div>
     </div>
 
-    <button id="landing-cta" class="deploy-btn">Launch WasteRadar →</button>
-    <p class="landing-footnote">Hackathon MVP demo — Agadir coastline</p>
+    <button id="landing-cta" class="deploy-btn" data-i18n="launch">Launch WasteRadar</button>
+    <p class="landing-footnote" data-i18n="footnote">Hackathon MVP demo — Agadir coastline</p>
   </div>
 </div>
 
-<!-- Mock Auth Overlay — crew + an optional display name. No email, no
-     password: this is a placeholder identity layer for the demo, easy to
-     swap for real auth later without touching anything downstream of
-     localStorage's wasteradar_crew / wasteradar_username keys. -->
+<!-- Mock Auth Overlay -->
 <div id="auth-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="auth-title">
   <div class="modal-card auth-card">
     <div class="radar-logo" aria-hidden="true"></div>
     <h1 id="auth-title" class="auth-card__title">WasteRadar</h1>
-    <p class="auth-card__tagline">Scan the coast. Flag the mess. Earn the cleanup.</p>
+    <p class="auth-card__tagline" data-i18n="tagline">Scan the coast. Flag the mess. Earn the cleanup.</p>
 
-    <label class="auth-card__label" for="crew-select">Select Your Crew</label>
+    <label class="auth-card__label" for="crew-select" data-i18n="selectCrew">Select Your Crew</label>
     <select id="crew-select" class="auth-card__select">
       <option value="Team Atlas">Team Atlas</option>
       <option value="Beach Guardians">Beach Guardians</option>
       <option value="Desert Rovers">Desert Rovers</option>
     </select>
 
-    <label class="auth-card__label" for="username-input">Your Name (optional)</label>
-    <input type="text" id="username-input" class="auth-card__input" placeholder="e.g. Sam" maxlength="20" />
+    <label class="auth-card__label" for="username-input" data-i18n="yourName">Your Name (optional)</label>
+    <input type="text" id="username-input" class="auth-card__input" data-i18n-placeholder="namePlaceholder" placeholder="e.g. Sam" maxlength="20" />
 
-    <button id="deploy-btn" class="deploy-btn">Deploy</button>
+    <button id="deploy-btn" class="deploy-btn" data-i18n="deploy">Deploy</button>
   </div>
 </div>
 
@@ -97,36 +92,35 @@
 <div id="report-modal" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="report-title">
   <div class="modal-card report-card">
     <div class="report-card__header">
-      <h2 id="report-title" class="report-card__title">Report Hotspot</h2>
+      <h2 id="report-title" class="report-card__title" data-i18n="reportHotspot">Report Hotspot</h2>
       <button id="close-report-modal" class="report-card__close" aria-label="Close">&times;</button>
     </div>
 
     <div class="upload-wrapper">
       <label class="upload-zone" id="upload-zone" for="photo-input">
-        <input type="file" id="photo-input" accept="image/*" capture="environment" hidden />
-        <span class="upload-zone__icon" id="upload-zone-icon">📷</span>
-        <span class="upload-zone__title" id="upload-zone-title">Snap a photo of the waste</span>
-        <span class="upload-zone__hint" id="upload-zone-hint">Tap to open camera or gallery</span>
+        <input type="file" id="photo-input" class="visually-hidden-input" accept="image/*" capture="environment" />
+        <span class="upload-zone__icon" id="upload-zone-icon" aria-hidden="true"></span>
+        <span class="upload-zone__title" id="upload-zone-title" data-i18n="snapPhoto">Snap a photo of the waste</span>
+        <span class="upload-zone__hint" id="upload-zone-hint" data-i18n="tapOpenCamera">Tap to open camera or gallery</span>
       </label>
-      <p class="upload-wrapper__caption">📍 Location pinned on the map — just attach a photo.</p>
+      <p class="upload-wrapper__caption" data-i18n="locationPinned">Location pinned on the map — just attach a photo.</p>
     </div>
 
     <button id="submit-report-btn" class="deploy-btn submit-btn">
       <span class="submit-btn__spinner" aria-hidden="true"></span>
-      <span class="submit-btn__label">Submit Report</span>
+      <span class="submit-btn__label" id="submit-report-label" data-i18n="submitReport">Submit Report</span>
     </button>
   </div>
 </div>
 
-<!-- Claim Cleanup Modal — AI verification core loop -->
+<!-- Claim Cleanup Modal -->
 <div id="claim-modal" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="claim-title">
   <div class="modal-card report-card">
     <div class="report-card__header">
-      <h2 id="claim-title" class="report-card__title">Claim Cleanup</h2>
+      <h2 id="claim-title" class="report-card__title" data-i18n="claimCleanup">Claim Cleanup</h2>
       <button id="close-claim-modal" class="report-card__close" aria-label="Close">&times;</button>
     </div>
 
-    <!-- State 1: upload form -->
     <div id="claim-state-form" class="claim-state">
       <div class="claim-severity-row">
         <span class="hotspot-popup__severity" id="claim-severity-badge">Severity score: —</span>
@@ -134,17 +128,16 @@
 
       <div class="upload-wrapper">
         <label class="upload-zone" id="claim-upload-zone" for="claim-photo-input">
-          <input type="file" id="claim-photo-input" accept="image/*" capture="environment" hidden />
-          <span class="upload-zone__icon" id="claim-upload-icon">📷</span>
-          <span class="upload-zone__title" id="claim-upload-title">Upload "After" Photo to Verify Cleanup</span>
-          <span class="upload-zone__hint" id="claim-upload-hint">Tap to open camera or gallery</span>
+          <input type="file" id="claim-photo-input" class="visually-hidden-input" accept="image/*" capture="environment" />
+          <span class="upload-zone__icon" id="claim-upload-icon" aria-hidden="true"></span>
+          <span class="upload-zone__title" id="claim-upload-title" data-i18n="uploadAfterPhoto">Upload "After" Photo to Verify Cleanup</span>
+          <span class="upload-zone__hint" id="claim-upload-hint" data-i18n="tapOpenCamera">Tap to open camera or gallery</span>
         </label>
       </div>
 
-      <button id="run-scanner-btn" class="deploy-btn">Run AI Scanner</button>
+      <button id="run-scanner-btn" class="deploy-btn" data-i18n="runAiScanner">Run AI Scanner</button>
     </div>
 
-    <!-- State 2: scanning -->
     <div id="claim-state-scanning" class="claim-state hidden">
       <div class="scanner-radar" aria-hidden="true">
         <span class="scanner-radar__ring"></span>
@@ -152,97 +145,101 @@
         <span class="scanner-radar__sweep"></span>
         <span class="scanner-radar__core"></span>
       </div>
-      <p class="claim-status-text">AI Analyzing visual waste reduction...</p>
+      <p class="claim-status-text" data-i18n="aiAnalyzing">AI Analyzing visual waste reduction...</p>
     </div>
 
-    <!-- State 3: success -->
     <div id="claim-state-success" class="claim-state hidden">
-      <div class="claim-success-icon" aria-hidden="true">✅</div>
-      <p class="claim-success-label">Cleanup Verified</p>
+      <div class="claim-success-icon" id="claim-success-icon" aria-hidden="true"></div>
+      <p class="claim-success-label" data-i18n="cleanupVerified">Cleanup Verified</p>
       <div class="claim-success-hero">
         <span class="claim-success-hero__number" id="claim-success-percent">0</span><span class="claim-success-hero__unit">%</span>
       </div>
-      <p class="claim-success-hero__caption">waste reduction detected</p>
+      <p class="claim-success-hero__caption" data-i18n="wasteReductionDetected">waste reduction detected</p>
       <p class="claim-success-subtext" id="claim-success-subtext"></p>
       <div class="claim-success-xp" id="claim-success-xp">+50 XP</div>
-      <button id="claim-share-btn" class="deploy-btn">Share My Impact 📤</button>
-      <button id="claim-done-btn" class="claim-done-link">Done</button>
+      <button id="claim-share-btn" class="deploy-btn" data-i18n="shareImpact">Share My Impact</button>
+      <button id="claim-done-btn" class="claim-done-link" data-i18n="done">Done</button>
     </div>
   </div>
 </div>
 
-<!-- Bottom sheets — Leaderboard and Me. Both slide up from behind the
-     bottom nav bar, over the map, sharing one dim backdrop. -->
+<!-- Bottom sheets -->
 <div id="sheet-backdrop" class="overlay hidden"></div>
 
 <section id="sheet-leaderboard" class="bottom-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="leaderboard-title">
   <div class="bottom-sheet__handle" aria-hidden="true"></div>
   <div class="report-card__header">
-    <h2 id="leaderboard-title" class="report-card__title">🏆 Leaderboard</h2>
+    <h2 id="leaderboard-title" class="report-card__title">
+      <span class="icon-inline" id="leaderboard-title-icon" aria-hidden="true"></span><span data-i18n="leaderboard">Leaderboard</span>
+    </h2>
     <button id="close-leaderboard" class="report-card__close" aria-label="Close">&times;</button>
   </div>
   <div id="leaderboard-list" class="leaderboard-list"></div>
-  <p class="leaderboard-caption">
-    Illustrative split of <strong id="leaderboard-total">0</strong> real verified cleanups.
-    Per-crew attribution is on the roadmap — exact team scores are coming soon.
-  </p>
+  <p class="leaderboard-caption" id="leaderboard-note"></p>
 </section>
 
 <section id="sheet-me" class="bottom-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="me-title">
   <div class="bottom-sheet__handle" aria-hidden="true"></div>
   <div class="report-card__header">
-    <h2 id="me-title" class="report-card__title">Me</h2>
+    <h2 id="me-title" class="report-card__title" data-i18n="me">Me</h2>
     <button id="close-me" class="report-card__close" aria-label="Close">&times;</button>
   </div>
   <div class="me-profile">
-    <div class="me-profile__avatar" id="me-avatar" aria-hidden="true">🧭</div>
+    <div class="me-profile__avatar" id="me-avatar" aria-hidden="true"></div>
     <div class="me-profile__name" id="me-name">Team Atlas</div>
     <div class="me-profile__team" id="me-team">Team Atlas</div>
     <div class="me-profile__xp">
       <span class="me-profile__xp-number" id="me-xp-count">0</span>
-      <span class="me-profile__xp-label">XP</span>
+      <span class="me-profile__xp-label" data-i18n="xp">XP</span>
     </div>
-    <button id="me-switch-btn" class="deploy-btn">Switch Crew</button>
+    <button id="me-switch-btn" class="deploy-btn" data-i18n="switchCrew">Switch Crew</button>
+
+    <div class="me-lang">
+      <span class="me-lang__label" data-i18n="language">Language</span>
+      <div class="me-lang__options">
+        <button type="button" class="me-lang__btn" data-lang="en">EN</button>
+        <button type="button" class="me-lang__btn" data-lang="fr">FR</button>
+        <button type="button" class="me-lang__btn" data-lang="ar">عربي</button>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- Bottom tab bar — the app's primary navigation. Map is the default/home
-     view; Leaderboard and Me open as sheets over it. -->
+<!-- Bottom nav -->
 <nav id="bottom-nav" class="bottom-nav hidden">
   <button id="nav-leaderboard" class="bottom-nav__item" type="button" aria-label="Leaderboard">
-    <span class="bottom-nav__icon">🏆</span>
-    <span class="bottom-nav__label">Leaderboard</span>
+    <span class="bottom-nav__icon" id="nav-leaderboard-icon" aria-hidden="true"></span>
+    <span class="bottom-nav__label" data-i18n="leaderboard">Leaderboard</span>
   </button>
   <button id="nav-map" class="bottom-nav__item bottom-nav__item--center is-active" type="button" aria-label="Map">
-    <span class="bottom-nav__icon">🗺️</span>
-    <span class="bottom-nav__label">Map</span>
+    <span class="bottom-nav__icon" id="nav-map-icon" aria-hidden="true"></span>
+    <span class="bottom-nav__label" data-i18n="map">Map</span>
   </button>
   <button id="nav-me" class="bottom-nav__item" type="button" aria-label="Me">
-    <span class="bottom-nav__icon" id="nav-me-icon">🧭</span>
-    <span class="bottom-nav__label">Me</span>
+    <span class="bottom-nav__icon" id="nav-me-icon" aria-hidden="true"></span>
+    <span class="bottom-nav__label" data-i18n="me">Me</span>
   </button>
 </nav>
 
-<!-- Friendly empty-map hint (shown only when there are zero open hotspots) -->
+<!-- Friendly empty-map hint -->
 <div id="map-empty-hint" class="map-empty-hint hidden">
-  No open hotspots right now — tap <strong>📍 Report Hotspot</strong> to add the first one!
+  <span data-i18n="noOpenHotspots">No open hotspots right now — tap</span>
+  <strong data-i18n="reportHotspot">Report Hotspot</strong>
+  <span data-i18n="toAddFirstOne">to add the first one.</span>
 </div>
 
-<!-- Floating Report Hotspot CTA — lives on the map screen since reporting
-     requires tapping a map location; sits just above the bottom nav bar. -->
+<!-- Floating Report Hotspot CTA -->
 <button id="report-btn" class="report-btn">
   <span class="report-btn__ring"></span>
   <span class="report-btn__ring report-btn__ring--delay"></span>
-  <span class="report-btn__icon">📍</span>
-  <span class="report-btn__label">Report Hotspot</span>
+  <span class="report-btn__icon" id="report-btn-icon" aria-hidden="true"></span>
+  <span class="report-btn__label" id="report-btn-label" data-i18n="reportHotspot">Report Hotspot</span>
 </button>
 
 <!-- Toast feedback -->
 <div id="toast" class="toast" aria-live="polite"></div>
 
-<!-- Hidden dev-mode reset trigger — triple-tap/triple-click to reset demo
-     data. Moved to the top-left corner now that the bottom edge is a
-     persistent, real nav bar. Intentionally invisible. -->
+<!-- Hidden dev-mode reset trigger -->
 <div id="dev-mode-trigger" class="dev-mode-trigger" aria-hidden="true"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
