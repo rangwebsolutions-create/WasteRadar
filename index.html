@@ -97,8 +97,9 @@
     </div>
 
     <div class="upload-wrapper">
-      <label class="upload-zone" id="upload-zone" for="photo-input">
-        <input type="file" id="photo-input" class="visually-hidden-input" accept="image/*" capture="environment" />
+      <label class="upload-zone" id="upload-zone">
+        <input type="file" id="photo-input" class="visually-hidden-input" accept="image/*" />
+        <img class="upload-zone__preview" id="upload-zone-preview" alt="" hidden />
         <span class="upload-zone__icon" id="upload-zone-icon" aria-hidden="true"></span>
         <span class="upload-zone__title" id="upload-zone-title" data-i18n="snapPhoto">Snap a photo of the waste</span>
         <span class="upload-zone__hint" id="upload-zone-hint" data-i18n="tapOpenCamera">Tap to open camera or gallery</span>
@@ -127,8 +128,9 @@
       </div>
 
       <div class="upload-wrapper">
-        <label class="upload-zone" id="claim-upload-zone" for="claim-photo-input">
-          <input type="file" id="claim-photo-input" class="visually-hidden-input" accept="image/*" capture="environment" />
+        <label class="upload-zone" id="claim-upload-zone">
+          <input type="file" id="claim-photo-input" class="visually-hidden-input" accept="image/*" />
+          <img class="upload-zone__preview" id="claim-upload-preview" alt="" hidden />
           <span class="upload-zone__icon" id="claim-upload-icon" aria-hidden="true"></span>
           <span class="upload-zone__title" id="claim-upload-title" data-i18n="uploadAfterPhoto">Upload "After" Photo to Verify Cleanup</span>
           <span class="upload-zone__hint" id="claim-upload-hint" data-i18n="tapOpenCamera">Tap to open camera or gallery</span>

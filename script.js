@@ -102,6 +102,10 @@ const TRANSLATIONS = {
     farFromHotspotToast: "Note: you're about {distance} m from this hotspot",
     nearHotspotToast: 'Location confirmed — you\'re on site',
     photoNotSavedToast: 'photo not saved yet — see console',
+    invalidFileToast: 'Please select an image file',
+    fileTooLargeToast: 'That photo is too large — please choose a smaller one',
+    photoProcessingFailedToast: 'Could not process that photo — please try another',
+    estimatedNote: 'estimated — no baseline photo on file',
   },
   fr: {
     tagline: 'Scannez la côte. Signalez les déchets. Gagnez le nettoyage.',
@@ -172,6 +176,10 @@ const TRANSLATIONS = {
     farFromHotspotToast: 'Remarque : vous êtes à environ {distance} m de ce point',
     nearHotspotToast: 'Position confirmée — vous êtes sur place',
     photoNotSavedToast: "photo pas encore enregistrée — voir la console",
+    invalidFileToast: 'Veuillez sélectionner un fichier image',
+    fileTooLargeToast: 'Cette photo est trop volumineuse — choisissez-en une plus petite',
+    photoProcessingFailedToast: 'Impossible de traiter cette photo — veuillez en essayer une autre',
+    estimatedNote: 'estimation — aucune photo de référence enregistrée',
   },
   ar: {
     tagline: 'امسح الساحل. أبلغ عن الفوضى. اكسب مكافأة التنظيف.',
@@ -242,6 +250,10 @@ const TRANSLATIONS = {
     farFromHotspotToast: 'ملاحظة: أنت على بعد حوالي {distance} م من هذه النقطة',
     nearHotspotToast: 'تم تأكيد الموقع — أنت في الموقع',
     photoNotSavedToast: 'لم يتم حفظ الصورة بعد — راجع وحدة التحكم',
+    invalidFileToast: 'يرجى اختيار ملف صورة',
+    fileTooLargeToast: 'هذه الصورة كبيرة جدًا — يرجى اختيار صورة أصغر',
+    photoProcessingFailedToast: 'تعذرت معالجة هذه الصورة — يرجى تجربة صورة أخرى',
+    estimatedNote: 'تقدير — لا توجد صورة مرجعية مسجلة',
   },
 };
 
@@ -358,6 +370,7 @@ const reportModal = document.getElementById('report-modal');
 const closeReportModalBtn = document.getElementById('close-report-modal');
 const uploadZone = document.getElementById('upload-zone');
 const uploadZoneIcon = document.getElementById('upload-zone-icon');
+const uploadZonePreview = document.getElementById('upload-zone-preview');
 const uploadZoneTitle = document.getElementById('upload-zone-title');
 const uploadZoneHint = document.getElementById('upload-zone-hint');
 const photoInput = document.getElementById('photo-input');
@@ -372,6 +385,7 @@ const claimStateSuccess = document.getElementById('claim-state-success');
 const claimSeverityBadge = document.getElementById('claim-severity-badge');
 const claimUploadZone = document.getElementById('claim-upload-zone');
 const claimUploadIcon = document.getElementById('claim-upload-icon');
+const claimUploadPreview = document.getElementById('claim-upload-preview');
 const claimUploadTitle = document.getElementById('claim-upload-title');
 const claimUploadHint = document.getElementById('claim-upload-hint');
 const claimPhotoInput = document.getElementById('claim-photo-input');
@@ -456,6 +470,15 @@ applyLanguage(localStorage.getItem(LANG_KEY) || 'en');
 // data. It's not a trained litter-detection model, but it is genuinely
 // analyzing the real photos, not calling Math.random().
 // =========================================================
+const MAX_PHOTO_BYTES = 15 * 1024 * 1024; // 15MB sanity ceiling before we even attempt to process a file
+
+// Returns an i18n key naming the problem, or null if the file is fine to proceed with.
+function validatePhotoFile(file) {
+  if (!file.type || !file.type.startsWith('image/')) return 'invalidFileToast';
+  if (file.size > MAX_PHOTO_BYTES) return 'fileTooLargeToast';
+  return null;
+}
+
 function fileToCompressedDataUrl(file, maxDimension, quality) {
   maxDimension = maxDimension || 800;
   quality = quality || 0.7;
@@ -773,8 +796,11 @@ function setPendingLocationAndOpenReport(latlng) {
 function resetReportForm() {
   photoInput.value = '';
   uploadZone.classList.remove('has-photo');
+  if (reportPreviewUrl) { URL.revokeObjectURL(reportPreviewUrl); reportPreviewUrl = null; }
+  uploadZonePreview.hidden = true;
+  uploadZonePreview.src = '';
+  uploadZoneIcon.hidden = false;
   setIcon(uploadZoneIcon, 'camera');
-  uploadZoneIcon.classList.remove('upload-zone__icon--success');
   uploadZoneTitle.textContent = t('snapPhoto');
   uploadZoneHint.textContent = t('tapOpenCamera');
   submitBtn.classList.remove('is-loading');
@@ -804,12 +830,26 @@ reportModal.addEventListener('click', (e) => {
   if (e.target === reportModal) requestClose();
 });
 
+let reportPreviewUrl = null;
+
 photoInput.addEventListener('change', () => {
   const file = photoInput.files[0];
   if (!file) return;
+
+  const problem = validatePhotoFile(file);
+  if (problem) {
+    showToast(t(problem));
+    photoInput.value = '';
+    return;
+  }
+
+  if (reportPreviewUrl) URL.revokeObjectURL(reportPreviewUrl);
+  reportPreviewUrl = URL.createObjectURL(file);
+
   uploadZone.classList.add('has-photo');
-  setIcon(uploadZoneIcon, 'check');
-  uploadZoneIcon.classList.add('upload-zone__icon--success');
+  uploadZonePreview.src = reportPreviewUrl;
+  uploadZonePreview.hidden = false;
+  uploadZoneIcon.hidden = true;
   uploadZoneTitle.textContent = t('imageAttached');
   uploadZoneHint.textContent = t('tapChangePhoto');
 });
@@ -840,10 +880,12 @@ submitBtn.addEventListener('click', async () => {
   }
 
   let photoDataUrl = null;
+  let photoProcessingFailed = false;
   try {
     photoDataUrl = await fileToCompressedDataUrl(file);
   } catch (err) {
     console.error('Photo compression failed — submitting without a stored photo:', err);
+    photoProcessingFailed = true;
   }
 
   const payload = {
@@ -883,6 +925,8 @@ submitBtn.addEventListener('click', async () => {
   const successMsg = t('reportSuccessToast', { xp: XP_PER_REPORT });
   if (photoColumnMissing) {
     showToast(`${successMsg} (${t('photoNotSavedToast')})`, 4200);
+  } else if (photoProcessingFailed) {
+    showToast(`${successMsg} (${t('photoProcessingFailedToast')})`, 4200);
   } else {
     showToast(successMsg);
   }
@@ -902,8 +946,11 @@ function showClaimState(state) {
 function resetClaimForm() {
   claimPhotoInput.value = '';
   claimUploadZone.classList.remove('has-photo');
+  if (claimPreviewUrl) { URL.revokeObjectURL(claimPreviewUrl); claimPreviewUrl = null; }
+  claimUploadPreview.hidden = true;
+  claimUploadPreview.src = '';
+  claimUploadIcon.hidden = false;
   setIcon(claimUploadIcon, 'camera');
-  claimUploadIcon.classList.remove('upload-zone__icon--success');
   claimUploadTitle.textContent = t('uploadAfterPhoto');
   claimUploadHint.textContent = t('tapOpenCamera');
   showClaimState('form');
@@ -929,12 +976,26 @@ claimModal.addEventListener('click', (e) => {
 });
 claimDoneBtn.addEventListener('click', requestCloseClaim);
 
+let claimPreviewUrl = null;
+
 claimPhotoInput.addEventListener('change', () => {
   const file = claimPhotoInput.files[0];
   if (!file) return;
+
+  const problem = validatePhotoFile(file);
+  if (problem) {
+    showToast(t(problem));
+    claimPhotoInput.value = '';
+    return;
+  }
+
+  if (claimPreviewUrl) URL.revokeObjectURL(claimPreviewUrl);
+  claimPreviewUrl = URL.createObjectURL(file);
+
   claimUploadZone.classList.add('has-photo');
-  setIcon(claimUploadIcon, 'check');
-  claimUploadIcon.classList.add('upload-zone__icon--success');
+  claimUploadPreview.src = claimPreviewUrl;
+  claimUploadPreview.hidden = false;
+  claimUploadIcon.hidden = true;
   claimUploadTitle.textContent = t('imageAttached');
   claimUploadHint.textContent = t('tapChangePhoto');
 });
@@ -993,26 +1054,31 @@ runScannerBtn.addEventListener('click', async () => {
   }
 
   let afterDataUrl = null;
+  let afterPhotoFailed = false;
   try {
     afterDataUrl = await fileToCompressedDataUrl(afterFile);
   } catch (err) {
     console.error('After-photo compression failed:', err);
+    afterPhotoFailed = true;
   }
 
   const beforeDataUrl = currentClaim.row.photo_data || null;
+  let usedRealComparison = false;
 
   const [reductionPercent] = await Promise.all([
     (async () => {
       if (beforeDataUrl && afterDataUrl) {
         try {
-          return await computeVisualChangePercent(beforeDataUrl, afterDataUrl);
+          const result = await computeVisualChangePercent(beforeDataUrl, afterDataUrl);
+          usedRealComparison = true;
+          return result;
         } catch (err) {
           console.error('Visual comparison failed, using a default estimate:', err);
         }
       }
       // No stored "before" photo (e.g. an older hotspot from before photo
-      // storage was enabled) — fall back to a reasonable default so the
-      // flow still completes.
+      // storage was enabled), or the after-photo failed to process — fall
+      // back to a reasonable default so the flow still completes.
       return Math.floor(Math.random() * (99 - 75 + 1)) + 75;
     })(),
     minDelay(3000), // keeps the scanning animation feeling substantial regardless of real compute time
@@ -1046,9 +1112,13 @@ runScannerBtn.addEventListener('click', async () => {
   addXp(XP_PER_VERIFY);
 
   claimSuccessPercent.textContent = reductionPercent;
-  claimSuccessSubtext.textContent = t('bottleEquivalent', { n: bottleEquivalent });
+  claimSuccessSubtext.textContent = usedRealComparison
+    ? t('bottleEquivalent', { n: bottleEquivalent })
+    : `${t('bottleEquivalent', { n: bottleEquivalent })} (${t('estimatedNote')})`;
   claimSuccessXp.textContent = `+${XP_PER_VERIFY} XP`;
   showClaimState('success');
+
+  if (afterPhotoFailed) showToast(t('photoProcessingFailedToast'), 3600);
 
   currentClaim = null;
 });
@@ -1226,6 +1296,16 @@ document.addEventListener('keydown', (e) => {
 
 // =========================================================
 // Developer "Demo Reset" trigger
+//
+// This used to call supabase.from('hotspots').delete() directly with the
+// anon key. That was a real vulnerability: the anon key is public by
+// design (it's shipped in this file), and this app has no real
+// authentication to distinguish "the developer" from "anyone with
+// devtools open" — so anyone could have wiped the table at any time.
+// Fixed two ways: (1) the anon role's DELETE grant should be revoked at
+// the database level (see README), so the key literally cannot delete
+// rows anymore regardless of what this code does, and (2) this trigger
+// no longer attempts a delete at all — it just points to the dashboard.
 // =========================================================
 let devTapTimestamps = [];
 const DEV_TAP_WINDOW_MS = 600;
@@ -1241,24 +1321,13 @@ devModeTrigger.addEventListener('click', () => {
   }
 });
 
-async function triggerDevReset() {
-  const confirmed = window.confirm('DEV MODE: Reset all map data for live demo?');
-  if (!confirmed) return;
-
-  if (!supabase) {
-    window.alert('Cannot reset — the database connection is not available.');
-    return;
-  }
-
-  const { error } = await supabase.from('hotspots').delete().not('id', 'is', null);
-
-  if (error) {
-    console.error('Dev reset failed:', error);
-    window.alert('Reset failed: ' + error.message);
-    return;
-  }
-
-  window.location.reload();
+function triggerDevReset() {
+  window.alert(
+    'For security, the anon key used by this app can no longer delete data directly ' +
+    '(public delete access was a real vulnerability — see the README). ' +
+    'To reset demo data: open the Supabase dashboard -> Table Editor -> hotspots -> ' +
+    'select all rows -> Delete.'
+  );
 }
 
 // =========================================================
